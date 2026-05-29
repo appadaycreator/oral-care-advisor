@@ -69,6 +69,10 @@ j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src=
             .result-value { font-size: 28px; }
         }
         /* ── サービス固有CSS ── */
+        .quiz-opt { width:100%; padding:12px 14px; margin-bottom:8px; border:2px solid #e5e7eb; border-radius:10px; font-size:14px; cursor:pointer; background:#fff; text-align:left; transition:border-color .15s, background .15s; }
+        .quiz-opt:hover { border-color:#7c3aed; background:#f5f3ff; }
+        .quiz-opt:active { transform:scale(0.99); background:#ede9fe; }
+        .quiz-opt:focus-visible { outline:3px solid #7c3aed; outline-offset:2px; }
 
     
 @media print{
@@ -80,6 +84,32 @@ j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src=
   [id*="result"],[id*="output"],[id*="advice"],[id*="diagnosis"],[class*="result"]{display:block!important}
   a[href]::after{content:none!important}
 }
+/* スコアゲージ */
+.score-wrap{text-align:center;padding:16px 0 8px;}
+.score-num{font-size:42px;font-weight:700;line-height:1;}
+.score-num.good{color:#16a34a;}
+.score-num.warn{color:#EA580C;}
+.score-num.danger{color:#dc2626;}
+.score-label{font-size:12px;color:#999;margin-bottom:4px;}
+.score-bar-bg{height:10px;background:#e5e7eb;border-radius:5px;margin:8px 0 0;overflow:hidden;}
+.score-bar{height:100%;border-radius:5px;transition:width .8s ease;}
+.score-bar.good{background:#16a34a;}
+.score-bar.warn{background:#EA580C;}
+.score-bar.danger{background:#dc2626;}
+/* 前へボタン */
+.btn-prev{background:transparent;color:#999;border:1.5px solid #e5e7eb;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;min-height:40px;transition:border-color .15s,color .15s;}
+.btn-prev:hover{border-color:#EA580C;color:#EA580C;}
+/* 製品推薦 */
+.products{background:#f8fafc;border-radius:10px;padding:14px;margin-top:14px;}
+.products h4{font-size:12px;font-weight:700;color:#888;margin-bottom:10px;}
+.product-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;}
+.product-item:last-child{border-bottom:none;}
+.product-item a{font-size:13px;color:#EA580C;text-decoration:none;font-weight:600;flex:1;}
+.product-item a:hover{text-decoration:underline;}
+/* 結果シェアボタン */
+.result-share{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+/* クイズヘッダ行 */
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 </style>
 </head>
 <body>
@@ -100,23 +130,37 @@ j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src=
         <div class="card" id="quiz-start">
           <h2 style="font-size:18px;font-weight:700;margin-bottom:12px;">🦷 歯・口腔ケア診断</h2>
           <p style="color:#666;font-size:14px;margin-bottom:8px;">歯磨きの習慣・症状・歯の悩みから最適な口腔ケアグッズと歯科受診の目安を診断。</p>
-          <ul style="font-size:13px;color:#94a3b8;margin:0 0 16px 16px;"><li>質問数：5問</li><li>所要時間：約1分</li></ul>
+          <ul style="font-size:13px;color:#94a3b8;margin:0 0 16px 16px;"><li>質問数：7問</li><li>所要時間：約1〜2分</li></ul>
           <button class="btn" onclick="startQuiz()">診断スタート →</button>
         </div>
-        <div id="quiz-area" style="display:none;">
-          <div style="font-size:12px;color:#999;margin-bottom:8px;">
-            質問 <span id="q-num">1</span> / <span id="q-total">5</span>
+        <div id="quiz-area" style="display:none;" class="card">
+          <div class="quiz-header">
+            <span style="font-size:12px;color:#999;">質問 <span id="q-num">1</span> / <span id="q-total">7</span></span>
+            <button id="btn-prev" class="btn-prev" onclick="prevQuestion()" style="display:none;" aria-label="前の質問に戻る">← 前へ</button>
           </div>
           <div id="q-progress" style="height:4px;background:#e5e7eb;border-radius:2px;margin-bottom:16px;">
-            <div id="q-bar" style="height:100%;background:#EA580C;border-radius:2px;transition:width .3s;width:20%;"></div>
+            <div id="q-bar" style="height:100%;background:#EA580C;border-radius:2px;transition:width .3s;width:0%;"></div>
           </div>
-          <p id="q-text" style="font-size:16px;font-weight:600;margin-bottom:16px;"></p>
-          <div id="q-options" class="space-y-2"></div>
+          <p id="q-text" style="font-size:16px;font-weight:600;margin-bottom:16px;" role="heading" aria-level="3"></p>
+          <div id="q-options" role="group" aria-labelledby="q-text"></div>
         </div>
         <div class="result" id="result">
           <div class="card">
-            <h3 id="r-title" style="font-size:18px;font-weight:700;margin-bottom:8px;color:#EA580C;"></h3>
+            <div class="score-wrap">
+              <div class="score-label">口腔ケアスコア</div>
+              <div id="r-score" class="score-num">--</div>
+              <div style="font-size:12px;color:#999;margin-top:2px;">/ 100点</div>
+              <div class="score-bar-bg">
+                <div id="r-score-bar" class="score-bar" style="width:0%;"></div>
+              </div>
+            </div>
+            <h3 id="r-title" style="font-size:20px;font-weight:700;margin:12px 0 8px;color:#EA580C;text-align:center;"></h3>
             <p id="r-desc" style="color:#444;font-size:14px;line-height:1.7;"></p>
+            <div id="r-products" class="products" style="display:none;">
+              <h4>🛒 おすすめグッズ（Amazon）</h4>
+              <div id="r-product-list"></div>
+            </div>
+            <div class="result-share" id="r-share"></div>
             <button class="btn" style="margin-top:16px;" onclick="location.reload()">もう一度診断</button>
           </div>
         </div>
@@ -188,7 +232,7 @@ j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src=
         </div>
     </main>
 
-    <footer style="text-align:center;padding:20px;color:white;font-size:12px;opacity:0.75;margin-top:8px;">
+    <footer style="text-align:center;padding:20px;color:white;font-size:12px;background:#374151;margin-top:8px;">
         <p><a href="https://appadaycreator.github.io/" style="color:white;">AppADayCreator</a>
         | <a href="privacy-policy.html" style="color:white;">プライバシーポリシー</a>
         | <a href="terms.html" style="color:white;">利用規約</a>
@@ -198,48 +242,189 @@ j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src=
     </footer>
 
     <script>
-    // ★ここだけ実装（約15行）★
     const QUESTIONS = [
       { text:'Q1. 歯磨きの頻度は？', opts:['1日1回以下','1日2回','毎食後','毎食後＋フロス'] },
       { text:'Q2. 気になる症状は？', opts:['歯がしみる','歯茎から血が出る','口臭が気になる','特になし'] },
-      { text:'Q3. 使っている歯ブラシは？', opts:['普通の歯ブラシ','電動歯ブラシ','音波歯ブラシ','何でもいい'] },
-      { text:'Q4. フロス・歯間ブラシの使用は？', opts:['毎日使う','たまに使う','ほぼ使わない','知らなかった'] },
+      { text:'Q3. 使っている歯ブラシは？', opts:['普通の歯ブラシ（手動）','電動歯ブラシ','音波歯ブラシ','よくわからない'] },
+      { text:'Q4. フロス・歯間ブラシの使用は？', opts:['毎日使う','たまに使う','ほぼ使わない','使ったことがない'] },
       { text:'Q5. 最後の歯科受診はいつ？', opts:['6ヶ月以内','1年以内','1〜3年前','3年以上or未受診'] },
+      { text:'Q6. 喫煙習慣は？', opts:['非喫煙者','電子タバコを使う','たまに喫煙する','毎日喫煙している'] },
+      { text:'Q7. 年齢層は？', opts:['10代以下','20〜30代','40〜50代','60代以上'] },
     ];
-    function getResult(answers) {
-      const freq = answers[0].idx;   // 歯磨き頻度
-      const symptom = answers[1].idx; // 症状
-      const floss = answers[3].idx;  // フロス
-      const dental = answers[4].idx; // 歯科受診
-      let score = 0;
-      if (freq <= 1) score += 2;
-      if (symptom === 1) score += 3; // 歯茎から血
-      if (symptom === 0) score += 1; // しみる
-      if (floss >= 2) score += 2;
-      if (dental >= 2) score += 2;
-      if (score >= 7) return { title:'🚨 今すぐ歯科へ', desc:'複数のリスクが重なっています。歯周病や虫歯が進行している可能性があります。早急に歯科を受診してください。放置すると抜歯リスクが高まります。' };
-      if (symptom === 1 || (floss >= 2 && dental >= 2)) return { title:'🩸 歯周病リスク注意', desc:'歯茎からの出血やフロス未使用は歯周病のサインです。フロスの習慣化と歯科受診が急務です。早期であれば改善できます。今すぐ対策を始めましょう。' };
-      if (freq <= 1 || floss >= 2) return { title:'🦷 電動歯ブラシ導入を', desc:'磨き残しを減らすため電動・音波歯ブラシへの切り替えがおすすめです。手磨きより約30%多くプラークを除去できます。あわせてフロスも習慣にしましょう。' };
-      return { title:'✅ 口腔ケア優等生', desc:'素晴らしい口腔ケア習慣が身についています！このまま継続してください。定期的な歯科検診（年2回）を忘れずに受けることで、歯の健康を長く維持できます。' };
+
+    function getResult(a) {
+      const freq    = a[0].idx; // 0=低い〜3=高い
+      const symptom = a[1].idx; // 0=しみる,1=血,2=口臭,3=なし
+      const brush   = a[2].idx; // 0=普通,1=電動,2=音波,3=不明
+      const floss   = a[3].idx; // 0=毎日〜3=未使用
+      const dental  = a[4].idx; // 0=6ヶ月以内〜3=3年以上
+      const smoke   = a[5].idx; // 0=非喫煙〜3=毎日
+      const age     = a[6].idx; // 0=10代以下〜3=60代以上
+
+      let risk = 0;
+      if (freq === 0) risk += 3; else if (freq === 1) risk += 1;
+      if (symptom === 1) risk += 4;
+      else if (symptom === 0 || symptom === 2) risk += 2;
+      if (brush === 0 || brush === 3) risk += 1;
+      if (floss === 3) risk += 3; else if (floss === 2) risk += 2; else if (floss === 1) risk += 1;
+      if (dental === 3) risk += 3; else if (dental === 2) risk += 2; else if (dental === 1) risk += 1;
+      if (smoke === 3) risk += 3; else if (smoke === 2) risk += 2; else if (smoke === 1) risk += 1;
+      if (age === 3) risk += 2; else if (age === 2) risk += 1;
+
+      // 最大リスク = 3+4+1+3+3+3+2 = 19
+      const healthScore = Math.max(5, Math.round((1 - risk / 19) * 100));
+
+      // 喫煙者特化（smoke >= 2 を優先）
+      if (smoke >= 2) return {
+        title: '🚬 喫煙者向け口腔ケア強化を',
+        desc: '喫煙は歯周病・口腔がんリスクを大幅に高め、歯茎の血流を悪化させます。ヤニによる着色・歯茎変色が進む前に、歯科クリーニングを年3〜4回受け、専用ケアグッズを使いましょう。禁煙でリスクは劇的に下がります。',
+        healthScore,
+        products:[
+          { name:'ヤニ取り専用歯磨き粉', url:'https://www.amazon.co.jp/s?k=ヤニ取り+歯磨き粉&tag=appadaycreator-22' },
+          { name:'ホワイトニング歯磨き粉（薬用）', url:'https://www.amazon.co.jp/s?k=ホワイトニング+歯磨き粉+薬用&tag=appadaycreator-22' },
+          { name:'音波歯ブラシ（ソニッケアー）', url:'https://www.amazon.co.jp/s?k=ソニッケアー&tag=appadaycreator-22' },
+        ]
+      };
+
+      // シニア特化（40代以上 + 歯科未受診）
+      if (age >= 2 && dental >= 2) return {
+        title: '👴 シニア向け歯周病予防を',
+        desc: '40代以上は歯周病が急速に進行しやすい時期です。歯茎が下がり知覚過敏・歯のぐらつきが起きる前に対策が必要です。歯間ブラシとフロスを毎日使い、年2〜3回の定期歯科検診を強くおすすめします。',
+        healthScore,
+        products:[
+          { name:'歯間ブラシ（GUM ソフトピック）', url:'https://www.amazon.co.jp/s?k=歯間ブラシ+GUM&tag=appadaycreator-22' },
+          { name:'歯周病対策歯磨き粉（システマ）', url:'https://www.amazon.co.jp/s?k=システマ+歯磨き粉&tag=appadaycreator-22' },
+          { name:'音波歯ブラシ', url:'https://www.amazon.co.jp/s?k=音波歯ブラシ&tag=appadaycreator-22' },
+        ]
+      };
+
+      // 重症リスク
+      if (risk >= 10) return {
+        title: '🚨 今すぐ歯科へ',
+        desc: '複数のリスクが重なっています。歯周病や虫歯が進行している可能性があります。早急に歯科を受診してください。放置すると抜歯リスクが大幅に高まります。今すぐ予約を入れましょう。',
+        healthScore,
+        products:[
+          { name:'デンタルフロス（毎日使い切りタイプ）', url:'https://www.amazon.co.jp/s?k=デンタルフロス+毎日&tag=appadaycreator-22' },
+          { name:'音波歯ブラシ（フィリップスソニッケアー）', url:'https://www.amazon.co.jp/s?k=ソニッケアー&tag=appadaycreator-22' },
+        ]
+      };
+
+      // 歯周病リスク
+      if (symptom === 1 || (floss >= 2 && dental >= 2)) return {
+        title: '🩸 歯周病リスク注意',
+        desc: '歯茎からの出血やフロス未使用は歯周病のサインです。フロスの習慣化と歯科受診が急務です。早期であれば改善できます。今すぐ対策を始めましょう。',
+        healthScore,
+        products:[
+          { name:'デンタルフロス（毎日使い切り）', url:'https://www.amazon.co.jp/s?k=デンタルフロス+毎日&tag=appadaycreator-22' },
+          { name:'歯周病対策歯磨き粉', url:'https://www.amazon.co.jp/s?k=歯周病+歯磨き粉+市販&tag=appadaycreator-22' },
+          { name:'電動歯ブラシ（オーラルB）', url:'https://www.amazon.co.jp/s?k=オーラルB+電動歯ブラシ&tag=appadaycreator-22' },
+        ]
+      };
+
+      // ケアをもう一歩
+      if (freq <= 1 || brush === 0 || brush === 3 || floss >= 2) return {
+        title: '🦷 ケアをもう一歩',
+        desc: '磨き残しを減らすため電動・音波歯ブラシへの切り替えがおすすめです。手磨きより約30%多くプラークを除去できます。あわせてフロスも習慣にしましょう。',
+        healthScore,
+        products:[
+          { name:'音波歯ブラシ（ソニッケアー）', url:'https://www.amazon.co.jp/s?k=ソニッケアー&tag=appadaycreator-22' },
+          { name:'デンタルフロス（初心者向け）', url:'https://www.amazon.co.jp/s?k=デンタルフロス+初心者&tag=appadaycreator-22' },
+        ]
+      };
+
+      // 口腔ケア優等生
+      return {
+        title: '✅ 口腔ケア優等生',
+        desc: '素晴らしい口腔ケア習慣が身についています！このまま継続してください。定期的な歯科検診（年2回）を忘れずに受けることで、歯の健康を長く維持できます。',
+        healthScore,
+        products:[
+          { name:'ホワイトニング歯磨き粉（薬用）', url:'https://www.amazon.co.jp/s?k=ホワイトニング+歯磨き粉+薬用&tag=appadaycreator-22' },
+          { name:'舌クリーナー（口臭ケア）', url:'https://www.amazon.co.jp/s?k=舌クリーナー&tag=appadaycreator-22' },
+        ]
+      };
     }
-    // ★以下変更不要★
-    const BTN='#EA580C'; let cur=0; const ans=[];
-    document.addEventListener('DOMContentLoaded',()=>{ document.getElementById('q-total').textContent=QUESTIONS.length; });
-    function startQuiz(){ cur=0;ans.length=0; document.getElementById('quiz-start').style.display='none'; document.getElementById('quiz-area').style.display='block'; document.getElementById('result').classList.remove('show'); renderQ(); }
-    function renderQ(){
-      const q=QUESTIONS[cur];
-      document.getElementById('q-num').textContent=cur+1;
-      document.getElementById('q-bar').style.width=((cur+1)/QUESTIONS.length*100)+'%';
-      document.getElementById('q-text').textContent=q.text;
-      document.getElementById('q-options').innerHTML=q.opts.map((o,i)=>`<button onclick="answer(${i})" style="width:100%;padding:12px;margin-bottom:8px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;cursor:pointer;background:#fff;text-align:left;">${o}</button>`).join('');
+
+    let cur = 0;
+    const ans = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('q-total').textContent = QUESTIONS.length;
+    });
+
+    function startQuiz() {
+      cur = 0;
+      ans.length = 0;
+      document.getElementById('quiz-start').style.display = 'none';
+      document.getElementById('quiz-area').style.display = 'block';
+      document.getElementById('result').classList.remove('show');
+      renderQ();
     }
-    function answer(idx){ ans.push({idx}); cur++; if(cur>=QUESTIONS.length) showResult(); else renderQ(); }
-    function showResult(){
-      document.getElementById('quiz-area').style.display='none';
-      const r=getResult(ans);
-      document.getElementById('r-title').textContent=r.title;
-      document.getElementById('r-desc').textContent=r.desc;
+
+    function renderQ() {
+      const q = QUESTIONS[cur];
+      document.getElementById('q-num').textContent = cur + 1;
+      // 回答前のバー幅（cur問終了済み）
+      document.getElementById('q-bar').style.width = (cur / QUESTIONS.length * 100) + '%';
+      document.getElementById('q-text').textContent = q.text;
+      document.getElementById('q-options').innerHTML = q.opts.map((o, i) =>
+        `<button class="quiz-opt" onclick="answer(${i})" aria-label="${o}">${o}</button>`
+      ).join('');
+      // 1問目は「前へ」非表示
+      document.getElementById('btn-prev').style.display = cur === 0 ? 'none' : 'inline-block';
+    }
+
+    function answer(idx) {
+      ans.push({ idx });
+      cur++;
+      if (cur >= QUESTIONS.length) showResult();
+      else renderQ();
+    }
+
+    function prevQuestion() {
+      if (cur === 0) return;
+      cur--;
+      ans.pop();
+      renderQ();
+    }
+
+    function showResult() {
+      document.getElementById('quiz-area').style.display = 'none';
+      const r = getResult(ans);
+
+      // スコアゲージ
+      const cls = r.healthScore >= 75 ? 'good' : r.healthScore >= 50 ? 'warn' : 'danger';
+      const scoreEl = document.getElementById('r-score');
+      scoreEl.textContent = r.healthScore;
+      scoreEl.className = 'score-num ' + cls;
+      const barEl = document.getElementById('r-score-bar');
+      barEl.className = 'score-bar ' + cls;
+      // アニメーションのため少し遅延してwidth設定
+      setTimeout(() => { barEl.style.width = r.healthScore + '%'; }, 50);
+
+      document.getElementById('r-title').textContent = r.title;
+      document.getElementById('r-desc').textContent = r.desc;
+
+      // 製品推薦
+      if (r.products && r.products.length) {
+        document.getElementById('r-product-list').innerHTML = r.products.map(p =>
+          `<div class="product-item">🛒 <a href="${p.url}" target="_blank" rel="noopener sponsored">${p.name} →</a></div>`
+        ).join('');
+        document.getElementById('r-products').style.display = 'block';
+      }
+
+      // SNSシェアボタン
+      const shareText = encodeURIComponent(`私の口腔ケア診断結果は【${r.title}】スコア${r.healthScore}点でした！ #口腔ケア診断`);
+      const shareUrl = encodeURIComponent('https://appadaycreator.com/oral-care-advisor/');
+      document.getElementById('r-share').innerHTML = `
+        <a href="https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}" target="_blank" rel="noopener"
+           style="background:#1DA1F2;color:white;padding:8px 16px;border-radius:8px;font-size:13px;text-decoration:none;font-weight:600;min-height:44px;display:inline-flex;align-items:center;"
+           aria-label="結果をXでシェア">𝕏 結果をシェア</a>
+        <a href="https://line.me/R/msg/text/?${shareText}%0A${shareUrl}" target="_blank" rel="noopener"
+           style="background:#00B900;color:white;padding:8px 16px;border-radius:8px;font-size:13px;text-decoration:none;font-weight:600;min-height:44px;display:inline-flex;align-items:center;"
+           aria-label="結果をLINEでシェア">LINE</a>`;
+
       document.getElementById('result').classList.add('show');
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     </script>
 </body>
