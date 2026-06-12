@@ -1,0 +1,67 @@
+Fetch this design file, read its readme, and implement the relevant aspects of the design. https://api.anthropic.com/v1/design/h/0iQIs-TYT3TK5f94Zs-8-Q?open_file=index.html
+Implement: ## 指示
+ClaudeDesignによって作成されたデザインを効果的に反映してほしい。
+
+**必ず最初に以下のデザイン参照画像を Read tool で読み込み、配色・レイアウト・フォント・セクション構成を視覚的に把握してから実装を開始してください:**
+- （LPページ全体デザイン）
+- （サービスページデザイン）
+
+- LPページとサービスページのデザインを実際のWebサービスに反映する。
+- **LPページは必ず `lp/index.html` として新規作成すること**（ディレクトリが存在しない場合は `mkdir lp` で作成）
+- サービスページは既存の / を更新。ユーザの利用動線を優先にしつつデザイン変更して。
+- コンテンツの目的に合わせて良いが、PCでもモバイルでも見れるように調整してほしい。
+- 全体のトップページのサービスページへのリンクは、LPページのURL（/lp/）に変更する
+- 今回の新デザイン（LPページのテーマカラーや素材・文字フォント・画像など）を該当既存サービスの全ページに刷新すること
+
+## ⚠️ 作業スコープ（必ず守ること）
+
+**読み込み・編集するファイルはこれだけ：**
+- `index.html`（サービスページ）
+- `lp/index.html`（LPページ・存在しない場合は新規作成）
+- 既存の `.css` ファイル（存在する場合のみ）
+
+**それ以外のファイル（contact.html, privacy-policy.html, terms.html, usage.html 等）は読まない・触らない。**
+ディレクトリ探索・ファイル一覧取得も不要。上記ファイルを直接編集すること。
+
+## ⚠️ 必須：実装完了後に必ず以下を実行すること（ローカルサーバーテストは不要）
+
+```bash
+git add -A
+git commit -m "Apply: design update with LP page"
+git push origin main
+```
+
+**git push origin main を実行してから完了とすること。push 完了のログを確認すること。**
+ローカルHTTPサーバーでのテストは不要。push が完了した時点で作業完了。
+
+## Claude Design プロジェクト
+
+
+Claude Design で生成されたコンポーネント（JSX・CSS）やプロトタイプの構成・スタイルを参考に実装すること。
+
+## デザイン参照画像（ローカル）
+- LP全体デザイン:      
+- サービスページデザイン: 
+- アイコン素材シート:   
+- 分割済みアイコン:    /Users/masayukitokunaga/workspace/30service/oral-care-advisor/assets/icons/split
+
+## 制約
+- GTM・GA4・AdSenseタグは変更しない
+- アフィリエイトリンクは変更しない
+- コアJSロジック（診断・計算ロジック）は変更しない
+
+## 対象プロジェクト
+303 歯・口腔ケア診断 oral-care-advisor https://appadaycreator.com/oral-care-advisor/
+/Users/masayukitokunaga/workspace/30service/oral-care-advisor/
+
+## ②デザイン改善要約（反映すること）
+SUMMARY_JSON:{"a":["質問数を5問から10-15問に拡充し診断精度向上","医学的根拠明示（医師監修表示）と医療機関紹介機能の追加","症状タイプの分類表示と動画エクササイズコンテンツ拡充"],"b":["診断タイプを『肩こり・腰痛・複合型』など明確に分類表示","所要時間『約5分』目安表示と複数回診断履歴の比較機能","メール・QRコード・医療機関直接送信など多様なシェア方法"],"d":["生活習慣ベース診断でAIツール（Ubie）との差別化・シンプルさを売り","『登録・個人情報不要』を強調し大正健康ナビとの差別化","診断履歴管理で『自分の改善を見える化』する独自価値"],"seo_h1":"【無料診断】腰痛・肩こりの原因を生活習慣からチェック｜改善エクササイズ付き","seo_meta":"生活習慣・姿勢から5分で腰痛・肩こりの原因を診断。改善エクササイズと受診目安を提案。登録不要・完全無料でスマートフォン・PCで利用可能。","forbidden":["GTM-TXQGZRF9","G-ZDPNYD2875","ca-pub-8427583028015858","gtag","getResult","saveHistory","getLastResult","clearHistory","renderHistoryPanel","clearAllHistory","printResult","downloadCSV","startQuiz","renderQ","answer","showResult"]}
+
+## 現在のindex.htmlの構成情報（事前読み込み済み・tool callでのファイル読み込み不要）
+<title>歯・口腔ケア診断【無料】無料診断・アドバイス</title>
+<meta name="description" content="歯磨きの習慣・症状・歯の悩みから最適な口腔ケアグッズと歯科受診の目安を診断">
+<!-- GTM: GTM-TXQGZRF9 -->
+<!-- AdSense: ca-pub-8427583028015858 -->
+<!-- Affiliate A8: a8.net/svt/ejp?a8mat=4B3WJ6+FQ9JMY+1LP8+BY642 -->
+<!-- JS functions: getResult, startQuiz, renderQ, answer, prevQuestion, showResult -->
+<h1>歯・口腔ケア診断</h1>
